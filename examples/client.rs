@@ -31,13 +31,7 @@ fn main() {
         panic!("Usage: {} unix_addr", args[0]);
     }
 
-    let fd = socket(AddressFamily::Unix, SockType::Stream, SockFlag::empty(), None).unwrap();
-    let sockaddr = args[1].clone() + &"\x00".to_string();
-    let sockaddr = UnixAddr::new_abstract(sockaddr.as_bytes()).unwrap();
-    let sockaddr = SockAddr::Unix(sockaddr);
-    connect(fd, &sockaddr).unwrap();
-
-    let c = Client::new(fd);
+    let c = Client::from_unix_addr(&args[1]).unwrap();
     let hc = protocols::health_ttrpc::HealthClient::new(c.clone());
     let ac = protocols::agent_ttrpc::AgentServiceClient::new(c);
 

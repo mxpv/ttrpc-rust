@@ -143,6 +143,16 @@ impl Client {
             client_close: client_close,
         }
     }
+
+    pub fn from_unix_addr(addr: &str) -> Result<Client> {
+        let fd = socket(AddressFamily::Unix, SockType::Stream, SockFlag::empty(), None).unwrap();
+        let sockaddr = format!("{}\x00", addr);
+        let sockaddr = UnixAddr::new_abstract(sockaddr.as_bytes()).unwrap();
+        let sockaddr = SockAddr::Unix(sockaddr);
+        connect(fd, &sockaddr).map_err(err_to_Others!(e, "Failed to connect "));
+
+        Ok(Client::new(fd))
+    }
     
     pub fn request(&self, req: Request) -> Result<Response> {
         let mut buf = Vec::with_capacity(req.compute_size() as usize);
